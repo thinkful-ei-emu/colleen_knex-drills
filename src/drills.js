@@ -47,10 +47,13 @@ getItemsAddedAfterDate(2)
 
 function getTotalCostForCategory(){
   knexInstance
+  //show category
   .select('category')
   .from('shopping_list')
+  //group items by category
   .groupBy('category')
-  .sum('price')
+  //to show price as 'total' for the category
+  .sum('price AS total')
   .then(result=>{
     console.log(result)
   })
