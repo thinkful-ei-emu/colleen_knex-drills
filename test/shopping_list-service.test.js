@@ -5,25 +5,25 @@ const knex = require('knex');
 let db;
 let testListItems = [
   {
-    id:1,
+    item_id:1,
     item_name: 'apple',
-    price: 1.00,
+    price: '1.00',
     category: 'Snack',
     date_added: new Date("2029-01-22T16:28:32.615Z"),
     checked: false
   },
   {
-    id:2,
+    item_id:2,
     item_name: 'lasagna',
-    price: 10.00,
+    price: '10.00',
     category: 'Main',
     date_added: new Date("2029-01-22T16:28:32.615Z"),
     checked: false
   },
   {
-    id:3,
+    item_id:3,
     item_name: 'pop tart',
-    price: 3.50,
+    price: '3.50',
     category: 'Breakfast',
     date_added: new Date("2029-01-22T16:28:32.615Z"),
     checked: false
@@ -75,5 +75,45 @@ context('given shopping_list has no data', ()=>{
 context('given shopping_list has data', ()=>{
   beforeEach(()=>{ 
     return db.into('shopping_list').insert(testListItems)
+   })
+   it('getitems() resolves all items from shopping_list', ()=>{
+     return ShoppingListService.getItems(db)
+     .then(actual =>{
+       expect(actual).to.eql(testListItems)
+     })
+   })
+   it('getItemById() resolves item by id from shopping_list', ()=>{
+     const secondItem = 2
+     const secondTestItem = testListItems[secondItem - 1]
+     return ShoppingListService.getItemById(db, secondItem)
+     .then(actual =>
+      expect(actual).to.eql(secondTestItem))
+   })
+   it('updateItem() updates item from shopping_list', ()=>{
+     const idOfItemToUpdate =  1
+     const content = {
+       item_name: 'fruitberries',
+       date_added: new Date(),
+       category: 'Breakfast',
+       checked: true,
+       price: '1.23'
+     }
+     return ShoppingListService.updateItem(db, idOfItemToUpdate, content)
+     .then(()=>ShoppingListService.getItemById(db, idOfItemToUpdate))
+     .then(actual =>{
+       expect(actual).to.eql({
+         item_id: idOfItemToUpdate,
+         ...content
+       })
+     })
+   })
+   it('deleteItem() deletes item by id from shopping_list', ()=>{
+    const itemIdDeleted = 1
+    ShoppingListService.deleteItem(db, itemIdDeleted)
+    .then(()=>ShoppingListService.getItems(db))
+    .then(items => {
+      const expected = testListItems.filter(item => item.item_id !== itemIdDeleted)
+      expect(items).to.eql(expected);
+    })
    })
   })
